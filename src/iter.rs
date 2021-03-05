@@ -63,3 +63,35 @@ impl Index {
         self.progress.take()
     }
 }
+
+pub struct Details {
+    items: Vec<Vec<String>>,
+}
+
+impl Details {
+    pub async fn new(client: &reqwest::Client, officer: &model::Officer) -> Result<Self, Box<dyn std::error::Error>> {
+        let req = query::get_followup(officer);
+
+        let resp = client.post(HOST)
+            .json(&req)
+            .send()
+            .await?
+            .json::<response::Response>()
+            .await?;
+
+        let mut items = resp.get_data();
+        items.reverse();
+
+        Ok(Details { items })
+    }
+}
+
+impl Iterator for Details {
+    type Item = Result<model::Details, model::DeserializeError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use core::convert::TryFrom;
+
+        self.items.pop().map(model::Details::try_from)
+    }
+}

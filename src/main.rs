@@ -33,31 +33,48 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut windex = csv::Writer::from_writer(
         std::io::BufWriter::new(
             std::fs::File::create(
-                "./output.csv",
+                "./officers.csv",
+            )?,
+        ),
+    );
+    let mut wdetails = csv::Writer::from_writer(
+        std::io::BufWriter::new(
+            std::fs::File::create(
+                "./details.csv",
             )?,
         ),
     );
 
-    let mut records = iter::Index::new(client).await?;
+    let mut records = iter::Index::new(client.clone()).await?;
 
     let mut count = 0;
 
     while let Some(officer) = records.next().await? {
         windex.serialize(&officer)?;
 
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+        for details in iter::Details::new(&client, &officer).await? {
+            let mut details = details?;
+
+            details.officer_id = officer.id.clone();
+
+            wdetails.serialize(details)?;
+        }
+
         if let Some(tokens) = records.progress() {
             println!("querying from {:?}", tokens);
-
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
             count += 1;
             if count % 10 == 0 {
                 windex.flush()?;
+                wdetails.flush()?;
             }
         }
     }
 
     windex.flush()?;
+    wdetails.flush()?;
 
     Ok(())
 }
