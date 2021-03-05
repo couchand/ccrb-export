@@ -64,8 +64,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for details in iter::Details::new(&client, &officer).await? {
             let mut details = details?;
 
-            details.officer_id = officer.id.clone();
-
             wdetails.serialize(details)?;
         }
 

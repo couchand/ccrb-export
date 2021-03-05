@@ -115,8 +115,7 @@ impl<S: ToString> IntoLiteral for S {
     fn stringify(&self) -> String {
         let mut result = "'".to_string();
 
-        // TODO: quote
-        result.push_str(&self.to_string());
+        result.push_str(&self.to_string().replace('\'', "\\'"));
 
         result.push_str("'");
 

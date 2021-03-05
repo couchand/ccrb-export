@@ -82,6 +82,10 @@ impl Details {
         let mut items = resp.get_data();
         items.reverse();
 
+        for item in &mut items {
+            item.officer_id = officer.id.clone();
+        }
+
         Ok(Details { items })
     }
 }
