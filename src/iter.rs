@@ -65,6 +65,7 @@ impl Index {
 }
 
 pub struct Details {
+    officer_id: String,
     items: Vec<Vec<String>>,
 }
 
@@ -82,11 +83,7 @@ impl Details {
         let mut items = resp.get_data();
         items.reverse();
 
-        for item in &mut items {
-            item.officer_id = officer.id.clone();
-        }
-
-        Ok(Details { items })
+        Ok(Details { items, officer_id: officer.id.clone() })
     }
 }
 
@@ -96,6 +93,12 @@ impl Iterator for Details {
     fn next(&mut self) -> Option<Self::Item> {
         use core::convert::TryFrom;
 
-        self.items.pop().map(model::Details::try_from)
+        self.items
+            .pop()
+            .map(model::Details::try_from)
+            .map(|res| res.map(|mut i| {
+                i.officer_id = self.officer_id.clone();
+                i
+            }))
     }
 }

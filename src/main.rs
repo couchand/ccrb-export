@@ -62,9 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
         for details in iter::Details::new(&client, &officer).await? {
-            let mut details = details?;
-
-            wdetails.serialize(details)?;
+            wdetails.serialize(details?)?;
         }
 
         if let Some(tokens) = records.progress() {
