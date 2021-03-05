@@ -214,7 +214,12 @@ fn map_response(data: &Ds) -> Vec<Vec<String>> {
                         }
                         7 => {
                             // TODO: format date
-                            let b: Box<dyn Fn(usize) -> String> = Box::new(|c: usize| c.to_string());
+                            let b: Box<dyn Fn(usize) -> String> = Box::new(|c: usize| {
+                                let millis = c;
+                                let seconds = millis / 1000;
+                                let dt = chrono::NaiveDateTime::from_timestamp(seconds as _, 0);
+                                dt.date().format("%Y-%m-%d").to_string()
+                            });
                             b
                         }
                         _ => {
