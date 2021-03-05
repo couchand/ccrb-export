@@ -2,17 +2,18 @@ use crate::{model, query, response, HOST};
 
 pub struct Index {
     items: Vec<Vec<String>>,
+    db: query::Database,
     rt: Option<Vec<String>>,
     client: reqwest::Client,
     progress: Option<Vec<String>>,
 }
 
 impl Index {
-    pub async fn new(client: reqwest::Client) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_with_restart_tokens(client, None).await
+    pub async fn new(client: reqwest::Client, db: query::Database) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::new_with_restart_tokens(client, db, None).await
     }
 
-    pub async fn new_after_officer(client: reqwest::Client, officer: &model::Officer) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new_after_officer(client: reqwest::Client, db: query::Database, officer: &model::Officer) -> Result<Self, Box<dyn std::error::Error>> {
         let restart_tokens = vec![
             query::IntoLiteral::stringify(&officer.command),
             query::IntoLiteral::stringify(&officer.id),
@@ -21,12 +22,13 @@ impl Index {
             query::IntoLiteral::stringify(&officer.rank),
             query::IntoLiteral::stringify(&officer.shield_no),
         ];
-        Self::new_with_restart_tokens(client, Some(restart_tokens)).await
+        Self::new_with_restart_tokens(client, db, Some(restart_tokens)).await
     }
 
-    async fn new_with_restart_tokens(client: reqwest::Client, rt: Option<Vec<String>>) -> Result<Self, Box<dyn std::error::Error>> {
+    async fn new_with_restart_tokens(client: reqwest::Client, db: query::Database, rt: Option<Vec<String>>) -> Result<Self, Box<dyn std::error::Error>> {
         let mut me = Index {
             items: vec![],
+            db,
             rt,
             client,
             progress: None,
@@ -57,9 +59,10 @@ impl Index {
     }
 
     async fn query_more(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let req = query::get_index(self.rt.clone());
+        let req = query::get_index(&self.db, self.rt.clone());
 
         let resp = self.client.post(HOST)
+            .header("X-PowerBI-ResourceKey", self.db.get_bi_resource_key())
             .json(&req)
             .send()
             .await?
@@ -86,10 +89,11 @@ pub struct Details {
 }
 
 impl Details {
-    pub async fn new(client: &reqwest::Client, officer: &model::Officer) -> Result<Self, Box<dyn std::error::Error>> {
-        let req = query::get_followup(officer);
+    pub async fn new(client: &reqwest::Client, db: query::Database, officer: &model::Officer) -> Result<Self, Box<dyn std::error::Error>> {
+        let req = query::get_followup(&db, officer);
 
         let resp = client.post(HOST)
+            .header("X-PowerBI-ResourceKey", db.get_bi_resource_key())
             .json(&req)
             .send()
             .await?

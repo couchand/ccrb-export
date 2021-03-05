@@ -226,7 +226,32 @@ struct DataReductionWindow {
     restart_tokens: Option<Vec<Vec<String>>>,
 }
 
-pub fn get_index(restart_tokens: Option<Vec<String>>) -> Request {
+#[derive(Debug, Clone, Copy)]
+pub enum Database {
+    Active,
+    Inactive,
+}
+
+impl Database {
+    fn get_model_id(&self) -> usize {
+        match self {
+            Database::Active => 404287,
+            Database::Inactive => 404284,
+        }
+    }
+
+    pub fn get_bi_resource_key(&self) -> &'static str {
+        match self {
+            Database::Active => BI_RESOURCE_KEY_VALUE_ACTIVE,
+            Database::Inactive => BI_RESOURCE_KEY_VALUE_INACTIVE,
+        }
+    }
+}
+
+const BI_RESOURCE_KEY_VALUE_ACTIVE: &str = "b2c8d2f2-3ad1-48dc-883c-d4163a6e2d8f";
+const BI_RESOURCE_KEY_VALUE_INACTIVE: &str = "87914378-578f-4f43-b75e-8ddaeafbdda2";
+
+pub fn get_index(db: &Database, restart_tokens: Option<Vec<String>>) -> Request {
     Request {
         version: "1.0.0",
         queries: vec![
@@ -365,11 +390,11 @@ pub fn get_index(restart_tokens: Option<Vec<String>>) -> Request {
             }
         ],
         cancel_queries: vec![],
-        model_id: 404287,
+        model_id: db.get_model_id(),
     }
 }
 
-pub fn get_followup(officer: &model::Officer) -> Request {
+pub fn get_followup(db: &Database, officer: &model::Officer) -> Request {
     Request {
         version: "1.0.0",
         queries: vec![
@@ -669,7 +694,7 @@ pub fn get_followup(officer: &model::Officer) -> Request {
             }
         ],
         cancel_queries: vec![],
-        model_id: 404287,
+        model_id: db.get_model_id(),
     }
 }
 
@@ -679,7 +704,7 @@ mod test {
 
     #[test]
     fn serialize_query() {
-        let req = get_index(Some(vec![
+        let req = get_index(&Database::Active, Some(vec![
             "'a'".into(),
             "'b'".into(),
             "'c'".into(),
@@ -706,7 +731,7 @@ mod test {
             shield_no: "98765".into(),
         };
 
-        let req = get_followup(&officer);
+        let req = get_followup(&Database::Active, &officer);
 
         const EXPECTED: &str = "{\"version\":\"1.0.0\",\"queries\":[{\"Query\":{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"q1\",\"Entity\":\"CCRB Active - Oracle\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"},\"Name\":\"Sum(Query1.Rn)\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Complaint ID\"},\"Name\":\"CountNonNull(Query1.Complaint Id)1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Incident Date\"},\"Name\":\"Query1.Incident Date\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"FADO Type\"},\"Name\":\"Query1.FADO Type1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Allegation\"},\"Name\":\"Query1.Allegation1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Board Disposition\"},\"Name\":\"Query1.Board Disposition1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"NYPD Disposition\"},\"Name\":\"Query1.NYPD Disposition\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Penalty\"},\"Name\":\"Query1.PenaltyDesc1\"}],\"Where\":[{\"Condition\":{\"Not\":{\"Expression\":{\"Comparison\":{\"ComparisonKind\":0,\"Left\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"}},\"Right\":{\"Literal\":{\"Value\":\"0L\"}}}}}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Shield No\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'98765\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Last Name\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Doe\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"First Name\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Jane\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Unique Id\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'12345\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'001 PD\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rank\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Police Officer\'\"}}]]}}}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[0,1,2,3,4,5,6,7]}]},\"DataReduction\":{\"DataVolume\":3,\"Primary\":{\"Window\":{\"Count\":500}}},\"Version\":1}}}]},\"QueryId\":\"\",\"ApplicationContext\":{\"DatasetId\":\"523ab509-8e2d-43ed-bfad-11fcd05180d7\",\"Sources\":[{\"ReportId\":\"f508555a-b39d-4c10-8d46-a14bc282e079\"}]}}],\"cancelQueries\":[],\"modelId\":404287}";
 

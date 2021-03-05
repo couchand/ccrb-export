@@ -7,13 +7,9 @@ const HOST: &str = "https://wabi-us-gov-virginia-api.analysis.usgovcloudapi.net/
 
 const USER_AGENT: &str = "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0";
 
-const BI_RESOURCE_KEY_KEY: &str = "X-PowerBI-ResourceKey";
-const BI_RESOURCE_KEY_VALUE: &str = "b2c8d2f2-3ad1-48dc-883c-d4163a6e2d8f";
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut headers = reqwest::header::HeaderMap::new();
-    headers.insert(BI_RESOURCE_KEY_KEY, reqwest::header::HeaderValue::from_static(BI_RESOURCE_KEY_VALUE));
     headers.insert("Accept", reqwest::header::HeaderValue::from_static("application/json, text/plain, */*"));
     headers.insert("ActivityId", reqwest::header::HeaderValue::from_static("a366f021-d490-ed01-6681-0fe32cf1255a"));
     headers.insert("RequestId", reqwest::header::HeaderValue::from_static("141bd242-9744-e182-52a8-ed8a1633b878"));
@@ -45,7 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    let mut records = iter::Index::new(client.clone()).await?;
+    let db = query::Database::Inactive;
+
+    let mut records = iter::Index::new(client.clone(), db).await?;
 
     let mut count = 0;
 
@@ -61,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         tokio::time::sleep(std::time::Duration::from_millis(25)).await;
 
-        for details in iter::Details::new(&client, &officer).await? {
+        for details in iter::Details::new(&client, db, &officer).await? {
             wdetails.serialize(details?)?;
         }
 
