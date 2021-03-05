@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         windex.serialize(&officer)?;
 
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(25)).await;
 
         for details in iter::Details::new(&client, &officer).await? {
             wdetails.serialize(details?)?;
