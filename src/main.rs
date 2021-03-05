@@ -28,17 +28,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .default_headers(headers)
         .build()?;
 
-    let request = query::get_followup();
+    //let request = query::get_followup();
+    let request = query::get_initial();
 
     let resp = client.post(HOST)
         .json(&request)
         .send()
         .await?
         .json::<response::Response>()
-        .await?
-        .get_data();
+        .await?;
 
-    for r in resp {
+    for r in resp.get_data() {
+//        println!("{:?}", r);
+    }
+
+    println!("{:?}", resp.get_restart_tokens());
+
+    let request = query::get_index(resp.get_restart_tokens());
+
+    let resp = client.post(HOST)
+        .json(&request)
+        .send()
+        .await?
+        .json::<response::Response>()
+        .await?;
+
+    for r in resp.get_data() {
         println!("{:?}", r);
     }
 

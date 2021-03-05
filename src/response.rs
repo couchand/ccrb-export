@@ -13,6 +13,10 @@ impl Response {
     pub fn get_data(&self) -> Vec<Vec<String>> {
         map_response(&self.results[0].result.data.dsr.d_s[0])
     }
+
+    pub fn get_restart_tokens(&self) -> Option<Vec<String>> {
+        self.results[0].result.data.dsr.d_s[0].r_t.as_ref().map(|v| v[0].clone())
+    }
 }
 
 #[derive(Deserialize, Debug)]

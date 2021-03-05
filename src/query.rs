@@ -199,6 +199,10 @@ struct DataReductionWindow {
 }
 
 pub fn get_initial() -> Request {
+    get_index(None)
+}
+
+pub fn get_index(restart_tokens: Option<Vec<String>>) -> Request {
     Request {
         version: "1.0.0",
         queries: vec![
@@ -314,7 +318,7 @@ pub fn get_initial() -> Request {
                                         primary: DataReductionPrimary {
                                             window: DataReductionWindow {
                                                 count: 500,
-                                                restart_tokens: None,
+                                                restart_tokens: restart_tokens.map(|v| vec![v]),
                                             },
                                         },
                                     },
@@ -458,12 +462,12 @@ pub fn get_request() -> Request {
                                             window: DataReductionWindow {
                                                 count: 500,
                                                 restart_tokens: Some(vec![vec![
-                                                    "\'007 DET\'".into(),
-                                                    "\'001133\'".into(),
-                                                    "\'Isolano\'".into(),
-                                                    "\'Nicholas\'".into(),
-                                                    "\'Detective\'".into(),
-                                                    "\'00545\'".into(),
+                                                    "'007 DET'".into(),
+                                                    "'001133'".into(),
+                                                    "'Isolano'".into(),
+                                                    "'Nicholas'".into(),
+                                                    "'Detective'".into(),
+                                                    "'00545'".into(),
                                                 ]]),
                                             },
                                         },
