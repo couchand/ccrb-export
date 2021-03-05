@@ -1,4 +1,7 @@
+use core::convert::TryFrom;
+
 mod iter;
+mod model;
 mod query;
 mod response;
 
@@ -37,25 +40,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    w.write_record(&["id", "command", "lastname", "firstname", "rank", "shield"])?;
+    w.write_record(&["id", "command", "last_name", "first_name", "rank", "shield_no"])?;
 
     let mut records = iter::Index::new(client).await?;
 
     let mut count = 0;
 
     while let Some(row) = records.next().await? {
-        w.write_record(&row)?;
+        let officer = model::Officer::try_from(row)?;
+
+        w.write_record(&[
+            officer.id,
+            officer.command,
+            officer.last_name,
+            officer.first_name,
+            officer.rank,
+            officer.shield_no,
+        ])?;
 
         if let Some(tokens) = records.progress() {
             println!("querying from {:?}", tokens);
 
             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-        }
 
-        count += 1;
-        if count > 4 {
-            break;
-            //w.flush()?;
+            count += 1;
+            if count % 10 == 0 {
+                w.flush()?;
+            }
         }
     }
 
