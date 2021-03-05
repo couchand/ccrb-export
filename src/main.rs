@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let request = query::get_followup();
     let request = query::get_initial();
 
-    let resp = client.post(HOST)
+    let mut resp = client.post(HOST)
         .json(&request)
         .send()
         .await?
@@ -55,18 +55,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     //println!("{:?}", resp.get_restart_tokens());
 
-    let request = query::get_index(resp.get_restart_tokens());
+    while resp.get_restart_tokens().is_some() {
+        let tokens = resp.get_restart_tokens();
 
-    let resp = client.post(HOST)
-        .json(&request)
-        .send()
-        .await?
-        .json::<response::Response>()
-        .await?;
+        println!("querying from {:?}", tokens);
 
-    for r in resp.get_data() {
-        w.write_record(&r);
-        //println!("{:?}", r);
+
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+
+        let request = query::get_index(tokens);
+
+        resp = client.post(HOST)
+            .json(&request)
+            .send()
+            .await?
+            .json::<response::Response>()
+            .await?;
+
+        for r in resp.get_data() {
+            w.write_record(&r);
+            //println!("{:?}", r);
+        }
     }
 
     w.flush()?;
