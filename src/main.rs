@@ -1,3 +1,4 @@
+mod iter;
 mod query;
 mod response;
 
@@ -38,44 +39,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     w.write_record(&["id", "command", "lastname", "firstname", "rank", "shield"])?;
 
-    //let request = query::get_followup();
-    let request = query::get_initial();
+    let mut records = iter::Index::new(client).await?;
 
-    let mut resp = client.post(HOST)
-        .json(&request)
-        .send()
-        .await?
-        .json::<response::Response>()
-        .await?;
+    let mut count = 0;
 
-    for r in resp.get_data() {
-        w.write_record(&r);
-//        println!("{:?}", r);
-    }
+    while let Some(row) = records.next().await? {
+        w.write_record(&row)?;
 
-    //println!("{:?}", resp.get_restart_tokens());
+        if let Some(tokens) = records.progress() {
+            println!("querying from {:?}", tokens);
 
-    while resp.get_restart_tokens().is_some() {
-        let tokens = resp.get_restart_tokens();
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
 
-        println!("querying from {:?}", tokens);
-
-
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-
-        let request = query::get_index(tokens);
-
-        resp = client.post(HOST)
-            .json(&request)
-            .send()
-            .await?
-            .json::<response::Response>()
-            .await?;
-
-        for r in resp.get_data() {
-            w.write_record(&r);
-            //println!("{:?}", r);
+        count += 1;
+        if count > 4 {
+            break;
+            //w.flush()?;
         }
     }
 
