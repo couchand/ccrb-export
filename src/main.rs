@@ -63,13 +63,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
-//fn main() {
-//    let resp = response::get_details();
-//    //println!("{:?}", resp);
-//
-//    let result = resp.get_data();
-//    for (i, r) in result.iter().enumerate() {
-//        println!("{}: {:?}", i, r);
-//    }
-//}

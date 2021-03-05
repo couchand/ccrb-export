@@ -198,10 +198,6 @@ struct DataReductionWindow {
     restart_tokens: Option<Vec<Vec<String>>>,
 }
 
-pub fn get_initial() -> Request {
-    get_index(None)
-}
-
 pub fn get_index(restart_tokens: Option<Vec<String>>) -> Request {
     Request {
         version: "1.0.0",
@@ -345,6 +341,7 @@ pub fn get_index(restart_tokens: Option<Vec<String>>) -> Request {
     }
 }
 
+#[allow(unused)]
 pub fn get_request() -> Request {
     Request {
         version: "1.0.0",
@@ -489,6 +486,7 @@ pub fn get_request() -> Request {
 }
 
 
+#[allow(unused)]
 pub fn get_followup() -> Request {
     Request {
         version: "1.0.0",
