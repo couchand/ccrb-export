@@ -1,5 +1,3 @@
-use core::convert::TryFrom;
-
 mod iter;
 mod model;
 mod query;
@@ -32,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .default_headers(headers)
         .build()?;
 
-    let mut w = csv::Writer::from_writer(
+    let mut windex = csv::Writer::from_writer(
         std::io::BufWriter::new(
             std::fs::File::create(
                 "./output.csv",
@@ -44,10 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut count = 0;
 
-    while let Some(row) = records.next().await? {
-        let officer = model::Officer::try_from(row)?;
-
-        w.serialize(&officer)?;
+    while let Some(officer) = records.next().await? {
+        windex.serialize(&officer)?;
 
         if let Some(tokens) = records.progress() {
             println!("querying from {:?}", tokens);
@@ -56,12 +52,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             count += 1;
             if count % 10 == 0 {
-                w.flush()?;
+                windex.flush()?;
             }
         }
     }
 
-    w.flush()?;
+    windex.flush()?;
 
     Ok(())
 }

@@ -1,4 +1,4 @@
-use crate::{query, response, HOST};
+use crate::{model, query, response, HOST};
 
 pub struct Index {
     items: Vec<Vec<String>>,
@@ -22,9 +22,11 @@ impl Index {
         Ok(me)
     }
 
-    pub async fn next(&mut self) -> Result<Option<Vec<String>>, Box<dyn std::error::Error>> {
-        if let Some(item) = self.items.pop() {
-            return Ok(Some(item));
+    pub async fn next(&mut self) -> Result<Option<model::Officer>, Box<dyn std::error::Error>> {
+        use core::convert::TryFrom;
+
+        if let Some(row) = self.items.pop() {
+            return Ok(Some(model::Officer::try_from(row)?));
         }
 
         if self.rt.is_none() {
@@ -34,7 +36,8 @@ impl Index {
         self.query_more()
             .await?;
 
-        Ok(self.items.pop())
+        let row = self.items.pop();
+        Ok(row.map(|row| model::Officer::try_from(row)).transpose()?)
     }
 
     async fn query_more(&mut self) -> Result<(), Box<dyn std::error::Error>> {
