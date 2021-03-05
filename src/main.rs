@@ -28,6 +28,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .default_headers(headers)
         .build()?;
 
+    let mut w = csv::Writer::from_writer(
+        std::io::BufWriter::new(
+            std::fs::File::create(
+                "./output.csv",
+            )?,
+        ),
+    );
+
+    w.write_record(&["id", "command", "lastname", "firstname", "rank", "shield"])?;
+
     //let request = query::get_followup();
     let request = query::get_initial();
 
@@ -39,10 +49,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     for r in resp.get_data() {
+        w.write_record(&r);
 //        println!("{:?}", r);
     }
 
-    println!("{:?}", resp.get_restart_tokens());
+    //println!("{:?}", resp.get_restart_tokens());
 
     let request = query::get_index(resp.get_restart_tokens());
 
@@ -54,8 +65,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     for r in resp.get_data() {
-        println!("{:?}", r);
+        w.write_record(&r);
+        //println!("{:?}", r);
     }
+
+    w.flush()?;
 
     Ok(())
 }
