@@ -45,7 +45,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    let mut records = iter::Index::new(client.clone()).await?;
+    let start_after = model::Officer {
+        id: "048800".into(),
+        command: "INT CIS".into(),
+        last_name: "Douglas".into(),
+        first_name: "Steven".into(),
+        rank: "Police Officer".into(),
+        shield_no: "00532".into(),
+    };
+
+    let mut records = iter::Index::new_after_officer(client.clone(), &start_after).await?;
 
     let mut count = 0;
 

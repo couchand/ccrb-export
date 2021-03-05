@@ -9,9 +9,25 @@ pub struct Index {
 
 impl Index {
     pub async fn new(client: reqwest::Client) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::new_with_restart_tokens(client, None).await
+    }
+
+    pub async fn new_after_officer(client: reqwest::Client, officer: &model::Officer) -> Result<Self, Box<dyn std::error::Error>> {
+        let restart_tokens = vec![
+            query::IntoLiteral::stringify(&officer.command),
+            query::IntoLiteral::stringify(&officer.id),
+            query::IntoLiteral::stringify(&officer.last_name),
+            query::IntoLiteral::stringify(&officer.first_name),
+            query::IntoLiteral::stringify(&officer.rank),
+            query::IntoLiteral::stringify(&officer.shield_no),
+        ];
+        Self::new_with_restart_tokens(client, Some(restart_tokens)).await
+    }
+
+    async fn new_with_restart_tokens(client: reqwest::Client, rt: Option<Vec<String>>) -> Result<Self, Box<dyn std::error::Error>> {
         let mut me = Index {
             items: vec![],
-            rt: None,
+            rt,
             client,
             progress: None,
         };

@@ -97,7 +97,7 @@ struct Literal {
     value: String,
 }
 
-trait IntoLiteral {
+pub trait IntoLiteral {
     fn stringify(&self) -> String;
 }
 
