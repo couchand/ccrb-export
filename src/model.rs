@@ -1,3 +1,6 @@
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub struct Officer {
     pub id: String,
     pub command: String,

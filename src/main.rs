@@ -40,8 +40,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    w.write_record(&["id", "command", "last_name", "first_name", "rank", "shield_no"])?;
-
     let mut records = iter::Index::new(client).await?;
 
     let mut count = 0;
@@ -49,14 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(row) = records.next().await? {
         let officer = model::Officer::try_from(row)?;
 
-        w.write_record(&[
-            officer.id,
-            officer.command,
-            officer.last_name,
-            officer.first_name,
-            officer.rank,
-            officer.shield_no,
-        ])?;
+        w.serialize(&officer)?;
 
         if let Some(tokens) = records.progress() {
             println!("querying from {:?}", tokens);
