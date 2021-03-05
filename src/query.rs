@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+use crate::model;
+
 #[derive(Serialize, Debug)]
 #[serde(rename_all="camelCase")]
 pub struct Request {
@@ -93,6 +95,33 @@ struct LiteralWrapper {
 #[serde(rename_all="PascalCase")]
 struct Literal {
     value: String,
+}
+
+trait IntoLiteral {
+    fn stringify(&self) -> String;
+}
+
+impl LiteralWrapper {
+    fn new<T: IntoLiteral>(value: &T) -> LiteralWrapper {
+        LiteralWrapper {
+            literal: Literal {
+                value: value.stringify(),
+            },
+        }
+    }
+}
+
+impl<S: ToString> IntoLiteral for S {
+    fn stringify(&self) -> String {
+        let mut result = "'".to_string();
+
+        // TODO: quote
+        result.push_str(&self.to_string());
+
+        result.push_str("'");
+
+        result
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -485,9 +514,7 @@ pub fn get_request() -> Request {
     }
 }
 
-
-#[allow(unused)]
-pub fn get_followup() -> Request {
+pub fn get_followup(officer: &model::Officer) -> Request {
     Request {
         version: "1.0.0",
         queries: vec![
@@ -635,11 +662,7 @@ pub fn get_followup() -> Request {
                                                     },
                                                 ],
                                                 values: vec![vec![
-                                                    LiteralWrapper {
-                                                        literal: Literal {
-                                                            value: "\'03057\'".into(),
-                                                        },
-                                                    },
+                                                    LiteralWrapper::new(&officer.shield_no),
                                                 ]],
                                             }
                                         },
@@ -658,11 +681,7 @@ pub fn get_followup() -> Request {
                                                     },
                                                 ],
                                                 values: vec![vec![
-                                                    LiteralWrapper {
-                                                        literal: Literal {
-                                                            value: "\'Eysel\'".into(),
-                                                        },
-                                                    },
+                                                    LiteralWrapper::new(&officer.last_name),
                                                 ]],
                                             }
                                         },
@@ -681,11 +700,7 @@ pub fn get_followup() -> Request {
                                                     },
                                                 ],
                                                 values: vec![vec![
-                                                    LiteralWrapper {
-                                                        literal: Literal {
-                                                            value: "\'Robert\'".into(),
-                                                        },
-                                                    },
+                                                    LiteralWrapper::new(&officer.first_name),
                                                 ]],
                                             }
                                         },
@@ -704,11 +719,7 @@ pub fn get_followup() -> Request {
                                                     },
                                                 ],
                                                 values: vec![vec![
-                                                    LiteralWrapper {
-                                                        literal: Literal {
-                                                            value: "\'000019\'".into(),
-                                                        },
-                                                    },
+                                                    LiteralWrapper::new(&officer.id),
                                                 ]],
                                             }
                                         },
@@ -727,11 +738,7 @@ pub fn get_followup() -> Request {
                                                     },
                                                 ],
                                                 values: vec![vec![
-                                                    LiteralWrapper {
-                                                        literal: Literal {
-                                                            value: "\'001 DET\'".into(),
-                                                        },
-                                                    },
+                                                    LiteralWrapper::new(&officer.command),
                                                 ]],
                                             }
                                         },
@@ -750,11 +757,7 @@ pub fn get_followup() -> Request {
                                                     },
                                                 ],
                                                 values: vec![vec![
-                                                    LiteralWrapper {
-                                                        literal: Literal {
-                                                            value: "\'Police Officer\'".into(),
-                                                        },
-                                                    },
+                                                    LiteralWrapper::new(&officer.rank),
                                                 ]],
                                             }
                                         },
@@ -832,9 +835,18 @@ mod test {
 
     #[test]
     fn serialize_followup() {
-        let req = get_followup();
+        let officer = model::Officer {
+            id: "12345".into(),
+            command: "001 PD".into(),
+            last_name: "Doe".into(),
+            first_name: "Jane".into(),
+            rank: "Police Officer".into(),
+            shield_no: "98765".into(),
+        };
 
-        const EXPECTED: &str = "{\"version\":\"1.0.0\",\"queries\":[{\"Query\":{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"q1\",\"Entity\":\"CCRB Active - Oracle\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"},\"Name\":\"Sum(Query1.Rn)\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Complaint ID\"},\"Name\":\"CountNonNull(Query1.Complaint Id)1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Incident Date\"},\"Name\":\"Query1.Incident Date\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"FADO Type\"},\"Name\":\"Query1.FADO Type1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Allegation\"},\"Name\":\"Query1.Allegation1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Board Disposition\"},\"Name\":\"Query1.Board Disposition1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"NYPD Disposition\"},\"Name\":\"Query1.NYPD Disposition\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Penalty\"},\"Name\":\"Query1.PenaltyDesc1\"}],\"Where\":[{\"Condition\":{\"Not\":{\"Expression\":{\"Comparison\":{\"ComparisonKind\":0,\"Left\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"}},\"Right\":{\"Literal\":{\"Value\":\"0L\"}}}}}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Shield No\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'03057\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Last Name\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Eysel\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"First Name\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Robert\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Unique Id\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'000019\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'001 DET\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rank\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Police Officer\'\"}}]]}}}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[0,1,2,3,4,5,6,7]}]},\"DataReduction\":{\"DataVolume\":3,\"Primary\":{\"Window\":{\"Count\":500}}},\"Version\":1}}}]},\"QueryId\":\"\",\"ApplicationContext\":{\"DatasetId\":\"523ab509-8e2d-43ed-bfad-11fcd05180d7\",\"Sources\":[{\"ReportId\":\"f508555a-b39d-4c10-8d46-a14bc282e079\"}]}}],\"cancelQueries\":[],\"modelId\":404287}";
+        let req = get_followup(&officer);
+
+        const EXPECTED: &str = "{\"version\":\"1.0.0\",\"queries\":[{\"Query\":{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"q1\",\"Entity\":\"CCRB Active - Oracle\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"},\"Name\":\"Sum(Query1.Rn)\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Complaint ID\"},\"Name\":\"CountNonNull(Query1.Complaint Id)1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Incident Date\"},\"Name\":\"Query1.Incident Date\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"FADO Type\"},\"Name\":\"Query1.FADO Type1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Allegation\"},\"Name\":\"Query1.Allegation1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Board Disposition\"},\"Name\":\"Query1.Board Disposition1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"NYPD Disposition\"},\"Name\":\"Query1.NYPD Disposition\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Penalty\"},\"Name\":\"Query1.PenaltyDesc1\"}],\"Where\":[{\"Condition\":{\"Not\":{\"Expression\":{\"Comparison\":{\"ComparisonKind\":0,\"Left\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"}},\"Right\":{\"Literal\":{\"Value\":\"0L\"}}}}}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Shield No\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'98765\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Last Name\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Doe\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"First Name\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Jane\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Unique Id\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'12345\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'001 PD\'\"}}]]}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rank\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"\'Police Officer\'\"}}]]}}}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rn\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[0,1,2,3,4,5,6,7]}]},\"DataReduction\":{\"DataVolume\":3,\"Primary\":{\"Window\":{\"Count\":500}}},\"Version\":1}}}]},\"QueryId\":\"\",\"ApplicationContext\":{\"DatasetId\":\"523ab509-8e2d-43ed-bfad-11fcd05180d7\",\"Sources\":[{\"ReportId\":\"f508555a-b39d-4c10-8d46-a14bc282e079\"}]}}],\"cancelQueries\":[],\"modelId\":404287}";
 
         let actual = serde_json::to_string(&req).expect("serialize");
 
