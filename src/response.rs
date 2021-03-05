@@ -116,7 +116,7 @@ pub struct Ds {
     i_c: bool,
     h_a_d: Option<bool>,
     r_t: Option<Vec<Vec<String>>>,
-    value_dicts: HashMap<String, Vec<String>>,
+    value_dicts: Option<HashMap<String, Vec<String>>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -194,6 +194,11 @@ mod test {
 fn map_response(data: &Ds) -> Vec<Vec<String>> {
     let mut result = vec![];
 
+    let value_dicts = match &data.value_dicts {
+        None => return vec![],
+        Some(v) => v,
+    };
+
     let mut rows = data.p_h.get(0).expect("one row in PH").d_m0.iter();
 
     let first = rows.next().expect("first row in DM0");
@@ -214,7 +219,7 @@ fn map_response(data: &Ds) -> Vec<Vec<String>> {
                             b
                         }
                         _ => {
-                            let dict = data.value_dicts.get(s.d_n.as_ref().expect("value dict id")).expect("value dict");
+                            let dict = value_dicts.get(s.d_n.as_ref().expect("value dict id")).expect("value dict");
                             let b: Box<dyn Fn(usize) -> String> = Box::new(move |c| dict[c].clone());
                             b
                         }
