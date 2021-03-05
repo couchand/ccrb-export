@@ -49,7 +49,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut count = 0;
 
+    let mut rows = 0;
+
     while let Some(officer) = records.next().await? {
+        rows += 1;
+        if rows % 10 == 0 {
+            println!("...to id {}", officer.id);
+        }
+
         windex.serialize(&officer)?;
 
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -63,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         if let Some(tokens) = records.progress() {
-            println!("querying from {:?}", tokens);
+            println!("querying to {:?}", tokens);
 
             count += 1;
             if count % 10 == 0 {
