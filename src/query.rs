@@ -369,150 +369,6 @@ pub fn get_index(restart_tokens: Option<Vec<String>>) -> Request {
     }
 }
 
-#[allow(unused)]
-pub fn get_request() -> Request {
-    Request {
-        version: "1.0.0",
-        queries: vec![
-            RequestQueryWrapper {
-                query: RequestQuery {
-                    commands: vec![
-                        RequestCommand {
-                            semantic_query_data_shape_command: QueryWrapper {
-                                query: Query {
-                                    version: 2,
-                                    from: vec![
-                                        FromClause {
-                                            name: "q1".into(),
-                                            entity: "CCRB Active - Oracle".into(),
-                                            from_type: 0,
-                                        },
-                                    ],
-                                    select: vec![
-                                        SelectClause {
-                                            column: SelectColumn {
-                                                expression: SelectExpression {
-                                                    source_ref: SourceRef {
-                                                        source: "q1".into(),
-                                                    },
-                                                },
-                                                property: "Unique Id".into(),
-                                            },
-                                            name: "Query1.Unique Id".into(),
-                                        },
-                                        SelectClause {
-                                            column: SelectColumn {
-                                                expression: SelectExpression {
-                                                    source_ref: SourceRef {
-                                                        source: "q1".into(),
-                                                    },
-                                                },
-                                                property: "Command".into(),
-                                            },
-                                            name: "Query1.Command1".into(),
-                                        },
-                                        SelectClause {
-                                            column: SelectColumn {
-                                                expression: SelectExpression {
-                                                    source_ref: SourceRef {
-                                                        source: "q1".into(),
-                                                    },
-                                                },
-                                                property: "Last Name".into(),
-                                            },
-                                            name: "Query1.Last Name1".into(),
-                                        },
-                                        SelectClause {
-                                            column: SelectColumn {
-                                                expression: SelectExpression {
-                                                    source_ref: SourceRef {
-                                                        source: "q1".into(),
-                                                    },
-                                                },
-                                                property: "First Name".into(),
-                                            },
-                                            name: "Query1.First Name1".into(),
-                                        },
-                                        SelectClause {
-                                            column: SelectColumn {
-                                                expression: SelectExpression {
-                                                    source_ref: SourceRef {
-                                                        source: "q1".into(),
-                                                    },
-                                                },
-                                                property: "Rank".into(),
-                                            },
-                                            name: "Query1.Rank1".into(),
-                                        },
-                                        SelectClause {
-                                            column: SelectColumn {
-                                                expression: SelectExpression {
-                                                    source_ref: SourceRef {
-                                                        source: "q1".into(),
-                                                    },
-                                                },
-                                                property: "Shield No".into(),
-                                            },
-                                            name: "Query1.ShieldNo".into(),
-                                        },
-                                    ],
-                                    where_clause: None,
-                                    order_by: vec![
-                                        OrderByClause {
-                                            direction: 1,
-                                            expression: OrderByExpression {
-                                                column: SelectColumn {
-                                                    expression: SelectExpression {
-                                                        source_ref: SourceRef {
-                                                            source: "q1".into(),
-                                                        },
-                                                    },
-                                                    property: "Command".into(),
-                                                },
-                                            },
-                                        },
-                                    ],
-                                },
-                                binding: Binding {
-                                    primary: Primary {
-                                        groupings: vec![
-                                            Grouping {
-                                                projections: vec![0, 1, 2, 3, 4, 5],
-                                            }
-                                        ],
-                                    },
-                                    data_reduction: DataReduction {
-                                        data_volume: 3,
-                                        primary: DataReductionPrimary {
-                                            window: DataReductionWindow {
-                                                count: 500,
-                                                restart_tokens: Some(vec![vec![
-                                                    "'007 DET'".into(),
-                                                    "'001133'".into(),
-                                                    "'Isolano'".into(),
-                                                    "'Nicholas'".into(),
-                                                    "'Detective'".into(),
-                                                    "'00545'".into(),
-                                                ]]),
-                                            },
-                                        },
-                                    },
-                                    version: 1,
-                                },
-                            },
-                        },
-                    ],
-                },
-                cache_options: None,
-                query_id: "",
-                application_context: None,
-            },
-        ],
-        cancel_queries: vec![],
-        model_id: 404287,
-    }
-}
-
 pub fn get_followup(officer: &model::Officer) -> Request {
     Request {
         version: "1.0.0",
@@ -823,9 +679,16 @@ mod test {
 
     #[test]
     fn serialize_query() {
-        let req = get_request();
+        let req = get_index(Some(vec![
+            "'a'".into(),
+            "'b'".into(),
+            "'c'".into(),
+            "'d'".into(),
+            "'e'".into(),
+            "'f'".into(),
+        ]));
 
-        const EXPECTED: &str = "{\"version\":\"1.0.0\",\"queries\":[{\"Query\":{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"q1\",\"Entity\":\"CCRB Active - Oracle\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Unique Id\"},\"Name\":\"Query1.Unique Id\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"},\"Name\":\"Query1.Command1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Last Name\"},\"Name\":\"Query1.Last Name1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"First Name\"},\"Name\":\"Query1.First Name1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rank\"},\"Name\":\"Query1.Rank1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Shield No\"},\"Name\":\"Query1.ShieldNo\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[0,1,2,3,4,5]}]},\"DataReduction\":{\"DataVolume\":3,\"Primary\":{\"Window\":{\"Count\":500,\"RestartTokens\":[[\"\'007 DET\'\",\"\'001133\'\",\"\'Isolano\'\",\"\'Nicholas\'\",\"\'Detective\'\",\"\'00545\'\"]]}}},\"Version\":1}}}]},\"QueryId\":\"\"}],\"cancelQueries\":[],\"modelId\":404287}";
+        const EXPECTED: &str = "{\"version\":\"1.0.0\",\"queries\":[{\"Query\":{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"q1\",\"Entity\":\"CCRB Active - Oracle\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Unique Id\"},\"Name\":\"Query1.Unique Id\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"},\"Name\":\"Query1.Command1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Last Name\"},\"Name\":\"Query1.Last Name1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"First Name\"},\"Name\":\"Query1.First Name1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Rank\"},\"Name\":\"Query1.Rank1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Shield No\"},\"Name\":\"Query1.ShieldNo\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"q1\"}},\"Property\":\"Command\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[0,1,2,3,4,5]}]},\"DataReduction\":{\"DataVolume\":3,\"Primary\":{\"Window\":{\"Count\":500,\"RestartTokens\":[[\"\'a\'\",\"\'b\'\",\"\'c\'\",\"\'d\'\",\"\'e\'\",\"\'f\'\"]]}}},\"Version\":1}}}]},\"CacheOptions\":7,\"QueryId\":\"\",\"ApplicationContext\":{\"DatasetId\":\"523ab509-8e2d-43ed-bfad-11fcd05180d7\",\"Sources\":[{\"ReportId\":\"f508555a-b39d-4c10-8d46-a14bc282e079\"}]}}],\"cancelQueries\":[],\"modelId\":404287}";
 
         let actual = serde_json::to_string(&req).expect("serialize");
 
